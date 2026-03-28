@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login · Campus Lost & Found</title>
+
+  <!-- Auto redirect if already logged in -->
+  <script>
+    (function () {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+
+      if (token) {
+        if (role === "admin") {
+          window.location.replace("/admindesbord.html");
+        } else {
+          window.location.replace("/");
+        }
+      }
+    })();
+  </script>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+
+  <!-- Google Identity -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+
+<body class="min-h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
+  style="background-image: url('/static/img/photo.jpg');">
+
+  <!-- LOGIN CARD -->
+  <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-md
+              rounded-xl shadow-2xl p-8 w-full max-w-md">
+
+    <h1 class="text-2xl font-bold text-center mb-2">Student Login</h1>
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400 mb-6">
+      Login using your <strong>@silveroakuni.ac.in</strong> Google account
+    </p>
+
+    <!-- Google Login -->
+    <div id="g_id_onload" data-client_id="723840503533-iv1ai6u7pc3k8qddehm3dsb83u3q85kq.apps.googleusercontent.com"
+      data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false">
+    </div>
+
+    <div class="flex justify-center mt-4">
+      <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with"
+        data-shape="rectangular">
+      </div>
+    </div>
+
+    <div class="mt-6 text-xs text-center text-gray-500 dark:text-gray-400">
+      Only official Silver Oak University accounts are allowed.
+    </div>
+  </div>
+
+  <!-- GOOGLE LOGIN HANDLER -->
+  <script>
+    function handleGoogleLogin(response) {
+      const formData = new FormData();
+      formData.append("credential", response.credential);
+
+      fetch("/auth/google/callback", {
+        method: "POST",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("role", data.role);
+
+            if (data.role === "admin") {
+              window.location.href = "/admindesbord.html";
+            } else {
+              window.location.href = "/";
+            }
+          } else {
+            if (data.error && data.error.toLowerCase().includes("disabled")) {
+              showDisabledModal();
+            } else {
+              alert(data.error || "Login failed");
+            }
+          }
+        })
+        .catch(() => {
+          alert("Login failed. Please try again.");
+        });
+    }
+  </script>
+
+  <!-- DISABLED ACCOUNT MODAL -->
+  <div id="loginErrorModal" class="fixed inset-0 hidden bg-black/60 z-50
+              flex items-center justify-center p-4">
+
+    <div id="loginErrorBox" class="bg-white dark:bg-gray-900
+                w-full max-w-sm rounded-2xl shadow-2xl
+                transform scale-95 opacity-0 transition-all duration-200">
+
+      <!-- ICON -->
+      <div class="flex justify-center pt-6">
+        <div class="w-14 h-14 flex items-center justify-center
+                    rounded-full bg-red-100 dark:bg-red-900/40">
+          <svg class="w-7 h-7 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" stroke-width="2"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="M18.364 5.636l-12.728 12.728M5.636 5.636l12.728 12.728" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- TEXT -->
+      <div class="px-6 py-4 text-center">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+          Account Disabled
+        </h2>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+          Your account has been disabled by the administrator.
+          Please contact support if you believe this is a mistake.
+        </p>
+      </div>
+
+      <!-- BUTTON -->
+      <div class="px-6 pb-6">
+        <button onclick="closeLoginError()" class="w-full py-2 rounded-lg
+                       bg-gray-900 dark:bg-gray-100
+                       text-white dark:text-black
+                       font-semibold hover:opacity-90 transition">
+          OK
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL LOGIC -->
+  <script>
+    function showDisabledModal() {
+      const modal = document.getElementById("loginErrorModal");
+      const box = document.getElementById("loginErrorBox");
+
+      modal.classList.remove("hidden");
+      setTimeout(() => {
+        box.classList.remove("scale-95", "opacity-0");
+        box.classList.add("scale-100", "opacity-100");
+      }, 10);
+    }
+
+    function closeLoginError() {
+      const modal = document.getElementById("loginErrorModal");
+      const box = document.getElementById("loginErrorBox");
+
+      box.classList.add("scale-95", "opacity-0");
+      setTimeout(() => {
+        modal.classList.add("hidden");
+      }, 200);
+    }
+  </script>
+
+</body>
+
+</html>

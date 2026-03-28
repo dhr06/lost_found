@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Campus Lost & Found</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode: 'class' }
+  </script>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="/static/css/navbar.css">
+
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+  <nav class="navbar">
+    <div class="navbar-container admin-navbar">
+
+      <!-- LEFT: Admin navigation -->
+      <div class="navbar-links admin-center-links">
+        <a href="/admin_items.html">Items</a>
+        <a href="/admin_contacts.html">Contacts</a>
+        <a href="/admin_users.html">Users</a>
+      </div>
+
+      <!-- RIGHT: Actions -->
+      <div class="navbar-actions">
+        <!-- Logout FIRST -->
+        <button class="nav-btn logout-btn" onclick="logout()">
+          Logout
+        </button>
+
+        <!-- Dark mode -->
+        <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+          <i class="fas fa-moon"></i>
+        </div>
+      </div>
+
+    </div>
+  </nav>
+
+
+
+  <!-- ================= MAIN ================= -->
+  <main class="p-8">
+
+
+    <!-- Top Bar -->
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold">Dashboard Overview</h1>
+    </div>
+
+    <!-- ================= STATS ================= -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">Lost Items</p>
+            <h2 id="lostCount" class="text-3xl font-bold">0</h2>
+          </div>
+          <i class="fas fa-search text-red-500 text-3xl"></i>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">Found Items</p>
+            <h2 id="foundCount" class="text-3xl font-bold">0</h2>
+          </div>
+          <i class="fas fa-check-circle text-green-500 text-3xl"></i>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">Pending Approval</p>
+            <h2 id="pendingCount" class="text-3xl font-bold">0</h2>
+          </div>
+          <i class="fas fa-clock text-yellow-500 text-3xl"></i>
+        </div>
+      </div>
+
+      <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500">New Messages</p>
+            <h2 id="contactCount" class="text-3xl font-bold">0</h2>
+          </div>
+          <i class="fas fa-envelope text-indigo-500 text-3xl"></i>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= RECENT ACTIVITY ================= -->
+    <section class="mt-12">
+      <h2 class="text-xl font-semibold mb-4">Recent Activity</h2>
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow divide-y dark:divide-gray-700">
+        <div id="activity" class="p-6 text-gray-500">Loading activity...</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= SCRIPTS ================= -->
+
+
+  <script>
+    async function loadStats() {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          document.getElementById("activity").textContent = "Not authenticated";
+          return;
+        }
+
+        const res = await fetch("/api/admin/stats", {
+          headers: {
+            "Authorization": "Bearer " + token
+          }
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          document.getElementById("activity").textContent =
+            data.message || "Failed to load data";
+          return;
+        }
+
+        // ✅ CORRECT KEYS (from backend)
+        document.getElementById("lostCount").textContent =
+          data.stats.lost_items || 0;
+
+        document.getElementById("foundCount").textContent =
+          data.stats.found_items || 0;
+
+        document.getElementById("pendingCount").textContent =
+          data.stats.pending_items || 0;
+
+        document.getElementById("contactCount").textContent =
+          data.stats.new_messages || 0;
+
+        document.getElementById("activity").innerHTML = `
+        <p>📌 ${data.stats.pending_items || 0} items awaiting approval</p>
+        <p>📩 ${data.stats.new_messages || 0} unread contact messages</p>
+      `;
+      } catch (e) {
+        console.error(e);
+        document.getElementById("activity").textContent = "Failed to load data";
+      }
+    }
+
+    loadStats();
+  </script>
+
+  <script>
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      html.classList.toggle("dark");
+
+      if (html.classList.contains("dark")) {
+        localStorage.setItem("theme", "dark");
+      } else {
+        localStorage.setItem("theme", "light");
+      }
+    }
+
+    // Apply saved theme on load
+    (function () {
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+
+  <script>
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("email");
+      localStorage.removeItem("role");
+
+      sessionStorage.clear();
+
+      window.location.href = "/login.html";
+    }
+  </script>
+
+</body>
+
+</html>

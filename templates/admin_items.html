@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin – Items</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Navbar CSS -->
+    <link rel="stylesheet" href="/static/css/navbar.css">
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+
+    <!-- ADMIN NAVBAR (SAME AS CONTACTS) -->
+    <nav class="navbar">
+        <div class="navbar-container admin-navbar">
+
+            <!-- CENTER: Admin navigation -->
+            <div class="navbar-links admin-center-links">
+                <a href="/admindesbord.html">Dashboard</a>
+                <a href="/admin_contacts.html">Contacts</a>
+                <a href="/admin_users.html">Users</a>
+            </div>
+
+            <!-- RIGHT: Actions -->
+            <div class="navbar-actions">
+                <button class="nav-btn logout-btn" onclick="logout()">
+                    Logout
+                </button>
+
+                <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- PAGE CONTENT (EMPTY ON PURPOSE) -->
+    <main class="p-6">
+        <h1 class="text-2xl font-bold mb-6">Items</h1>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="border-b dark:border-gray-700">
+                    <th class="p-2 text-left">Title</th>
+                    <th class="p-2 text-left">Type</th>
+                    <th class="p-2 text-left">User</th>
+                    <th class="p-2 text-left">Status</th>
+                    <th class="p-2 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody id="itemsTable"></tbody>
+        </table>
+
+        <!-- ITEM VIEW MODAL -->
+        <div id="itemModal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50
+            flex items-center justify-center p-4">
+
+            <div class="bg-white dark:bg-gray-900
+              w-full max-w-2xl
+              max-h-[90vh]
+              rounded-xl shadow-lg
+              flex flex-col">
+
+                <!-- HEADER -->
+                <div class="px-6 py-4 border-b dark:border-gray-700">
+                    <h2 id="mTitle" class="text-xl font-bold text-gray-900 dark:text-white"></h2>
+                </div>
+
+                <!-- BODY (SCROLLABLE) -->
+                <div class="px-6 py-4 overflow-y-auto space-y-4">
+
+                    <p id="mDesc" class="text-gray-700 dark:text-gray-300"></p>
+
+                    <p id="mLoc" class="text-sm text-gray-600 dark:text-gray-400"></p>
+
+                    <p id="mPhone" class="text-sm font-medium"></p>
+
+                    <!-- ITEM IMAGE -->
+                    <img id="mImg" class="hidden w-full max-h-64 object-contain rounded border">
+
+                    <!-- ID CARD -->
+                    <img id="mIdCard" class="hidden w-full max-h-64 object-contain rounded border">
+
+                    <!-- AADHAAR -->
+                    <img id="mAadhaar" class="hidden w-full max-h-64 object-contain rounded border">
+                </div>
+
+                <!-- FOOTER (FIXED BUTTONS) -->
+                <div class="px-6 py-4 border-t dark:border-gray-700
+                flex justify-end gap-3">
+
+                    <button onclick="approveItem()" class="px-4 py-2 bg-green-600 hover:bg-green-700
+                     text-white rounded-lg">
+                        Approve
+                    </button>
+
+                    <button onclick="rejectItem()" class="px-4 py-2 bg-red-600 hover:bg-red-700
+                     text-white rounded-lg">
+                        Reject & Delete
+                    </button>
+
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-700
+                     rounded-lg">
+                        Close
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Items UI will be added later -->
+    </main>
+
+    <!-- 🔐 FRONTEND ADMIN GUARD -->
+    <script>
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+
+        if (!token || role !== "admin") {
+            window.location.href = "/login.html";
+        }
+    </script>
+
+    <!-- 🌙 DARK MODE -->
+    <script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle("dark");
+
+            if (html.classList.contains("dark")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        // Apply saved theme on load
+        (function () {
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark");
+            }
+        })();
+    </script>
+
+    <!-- 🚪 LOGOUT -->
+    <script>
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user_id");
+            localStorage.removeItem("email");
+            localStorage.removeItem("role");
+
+            sessionStorage.clear();
+
+            window.location.href = "/login.html";
+        }
+    </script>
+
+    <script>
+        async function loadItems() {
+            const token = localStorage.getItem("token");
+
+            const res = await fetch("/api/admin/items", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            const data = await res.json();
+            const tbody = document.getElementById("itemsTable");
+            tbody.innerHTML = "";
+
+            data.items.forEach(item => {
+                tbody.innerHTML += `
+      <tr class="border-b dark:border-gray-700">
+        <td class="p-2">${item.title}</td>
+        <td class="p-2">${item.type}</td>
+        <td class="p-2">${item.user_info?.email || "-"}</td>
+        <td class="p-2">${item.status}</td>
+        <td class="p-2">
+          <button onclick="viewItem('${item._id}')" class="text-blue-600">
+            View
+          </button>
+        </td>
+      </tr>
+    `;
+            });
+        }
+
+        loadItems();
+    </script>
+
+    <script>
+        let currentItemId = null;
+
+        function viewItem(id) {
+            currentItemId = id;
+
+            fetch(`/api/item/${id}`)
+                .then(r => r.json())
+                .then(data => {
+                    const item = data.item;
+                    document.getElementById("mTitle").textContent = item.title;
+                    document.getElementById("mDesc").textContent = item.description;
+                    document.getElementById("mLoc").textContent = item.location;
+
+                    if (item.image) {
+                        const img = document.getElementById("mImg");
+                        img.src = item.image;
+                        img.classList.remove("hidden");
+
+                        // Phone
+                        document.getElementById("mPhone").textContent =
+                            "Phone: " + (item.phone || "Not provided");
+
+                        // ID card
+                        if (item.id_card_image) {
+                            const img = document.getElementById("mIdCard");
+                            img.src = item.id_card_image;
+                            img.classList.remove("hidden");
+                        }
+
+                        // Aadhaar
+                        if (item.aadhaar_image) {
+                            const img = document.getElementById("mAadhaar");
+                            img.src = item.aadhaar_image;
+                            img.classList.remove("hidden");
+                        }
+
+                    }
+
+                    document.getElementById("itemModal").classList.remove("hidden");
+                });
+        }
+
+        function closeModal() {
+            document.getElementById("itemModal").classList.add("hidden");
+        }
+
+        function updateStatus(action) {
+            const token = localStorage.getItem("token");
+
+            fetch(`/api/admin/approve/${currentItemId}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ action })
+            }).then(() => {
+                closeModal();
+                loadItems();
+            });
+        }
+
+        function approveItem() {
+            const token = localStorage.getItem("token");
+
+            fetch(`/api/admin/approve/${currentItemId}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ action: "approve" })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("Approval failed");
+                    return res.json();
+                })
+                .then(() => {
+                    closeModal();
+                    loadItems();
+                })
+                .catch(err => {
+                    alert("Failed to approve item");
+                    console.error(err);
+                });
+        }
+
+        function rejectItem() {
+            if (!confirm("Are you sure you want to delete this item?")) return;
+
+            const token = localStorage.getItem("token");
+
+            fetch(`/api/item/${currentItemId}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            })
+                .then(() => {
+                    closeModal();
+                    loadItems();
+                });
+        }
+    </script>
+</body>
+
+</html>

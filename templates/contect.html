@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact - Campus Lost & Found</title>
+  <script>
+    (function () {
+      const theme = localStorage.getItem('theme');
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Enable dark mode class strategy
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .hero-banner {
+      background:
+        linear-gradient(to right, rgba(30, 41, 59, 0.9), rgba(30, 41, 59, 0.7)),
+        url('https://images.unsplash.com/photo-1541178735493-479c1a27ed24?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&w=2071&q=80');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+    }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+
+      <!-- Logo -->
+      <a href="/" class="navbar-logo">
+        <img src="{{ url_for('static', filename='img/image.png') }}" alt="Logo">
+      </a>
+
+      <!-- Links -->
+      <div class="navbar-links">
+        <a href="/">Home</a>
+        <a href="founditem.html">Found Item</a>
+        <a href="lostitem.html">Lost Item</a>
+        <a href="about.html">About</a>
+        <a href="faq.html">FAQ</a>
+      </div>
+
+      <!-- Actions -->
+      <div class="navbar-actions">
+        <a id="loginBtn" href="login.html" class="nav-btn login-btn">Login</a>
+
+        <button id="logoutBtn" class="nav-btn logout-btn hidden">
+          Logout
+        </button>
+
+        <button id="darkModeToggle" class="dark-toggle">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+
+    </div>
+  </nav>
+
+
+  <!-- Hero Banner -->
+  <section class="hero-banner text-white py-20 md:py-28">
+    <div class="container mx-auto px-4 text-center">
+      <h2 class="text-4xl md:text-5xl font-bold mb-6">Contact Us</h2>
+      <p class="text-xl mb-8">We are here to help you with any queries or support you need.</p>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="py-16 px-4 bg-white dark:bg-gray-900 transition-colors duration-300">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-3xl font-bold mb-4">Contact Us</h2>
+      <p class="mb-8">
+        For any queries, suggestions, or technical support, feel free to contact us using the form below.
+      </p>
+
+      <form id="contactForm" class="space-y-6">
+
+        <div>
+          <label class="block mb-1 font-medium">Your Name</label>
+          <input id="name" type="text" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3
+             bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200" required />
+        </div>
+
+        <div>
+          <label class="block mb-1 font-medium">Email Address</label>
+          <input id="email" type="email" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3
+             bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200" required />
+        </div>
+
+        <div>
+          <label class="block mb-1 font-medium">Subject</label>
+          <input id="subject" type="text" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3
+             bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200" required />
+        </div>
+
+        <div>
+          <label class="block mb-1 font-medium">Message</label>
+          <textarea id="message" rows="5" class="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3
+             bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200" required></textarea>
+        </div>
+
+        <button type="submit"
+          class="bg-indigo-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-indigo-700 transition">
+          Send Message
+        </button>
+      </form>
+
+    </div>
+  </section>
+
+  <!-- Footer Section -->
+  <footer class="bg-gray-900 text-gray-400 py-10">
+    <div class="container mx-auto px-6 md:px-12 lg:px-24 grid grid-cols-1 md:grid-cols-4 gap-8">
+
+      <!-- About -->
+      <div>
+        <h3 class="text-white text-xl font-semibold mb-4">Campus Lost & Found</h3>
+        <p class="text-sm leading-relaxed">
+          Helping students and staff recover lost items quickly and easily. Join our community to ensure lost items find
+          their rightful owners.
+        </p>
+      </div>
+
+      <!-- Contact Info -->
+      <div>
+        <h3 class="text-white text-xl font-semibold mb-4">Contact</h3>
+        <p class="text-sm">Silver Oak University, Gota, Ahmedabad, Gujarat, India</p>
+        <p class="text-sm">Phone: +91 8128860669</p>
+        <p class="text-sm">Email: lostfound11@gmail.com</p>
+      </div>
+
+      <!-- Quick Links -->
+      <div>
+        <h3 class="text-white text-xl font-semibold mb-4">Quick Links</h3>
+        <nav class="flex flex-col space-y-2 text-gray-300 text-base">
+          <a href="index.html" class="hover:text-indigo-500 transition">Home</a>
+          <a href="about.html" class="hover:text-indigo-500 transition">About</a>
+          <a href="faq.html" class="hover:text-indigo-500 transition">FAQ</a>
+          <a href="lostitem.html" class="hover:text-indigo-500 transition">Lost item</a>
+          <a href="founditem.html" class="hover:text-indigo-500 transition">Found item</a>
+        </nav>
+      </div>
+
+      <!-- Social + Newsletter -->
+      <div>
+        <h3 class="text-white text-xl font-semibold mb-4">Follow Us</h3>
+        <div class="flex space-x-4 text-gray-400 text-lg mb-6">
+          <a href="#" class="hover:text-indigo-500 transition"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="hover:text-indigo-500 transition"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="hover:text-indigo-500 transition"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="hover:text-indigo-500 transition"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+
+    <hr class="border-gray-700 my-8" />
+
+    <p class="text-center text-gray-500 text-sm">&copy; 2025 Campus Lost & Found. All rights reserved.</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    document.getElementById("contactForm").addEventListener("submit", function (e) {
+      e.preventDefault(); // 🔥 THIS IS THE FIX
+
+      fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: document.getElementById("name").value,
+          email: document.getElementById("email").value,
+          subject: document.getElementById("subject").value,
+          message: document.getElementById("message").value
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          showModal();  // 🔥 THIS SHOWS POPUP
+          document.getElementById("contactForm").reset();
+        });
+    });
+  </script>
+
+  <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/darkmode.js') }}"></script>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50
+            opacity-0 pointer-events-none transition-opacity duration-300 z-50">
+
+    <div id="modalBox" class="bg-white dark:bg-gray-800 p-6 rounded-xl text-center w-80
+              transform scale-95 opacity-0
+              transition-all duration-300 ease-out">
+
+      <div class="text-3xl mb-2">✅</div>
+
+      <h2 class="text-xl font-semibold mb-2">
+        Message Sent
+      </h2>
+
+      <p class="text-gray-600 dark:text-gray-300 mb-4">
+        We’ll get back to you soon.
+      </p>
+
+      <button type="button" onclick="closeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700
+                   text-white rounded-lg transition">
+        OK
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    function showModal() {
+      const modal = document.getElementById("successModal");
+      const box = document.getElementById("modalBox");
+
+      modal.classList.remove("pointer-events-none");
+      modal.classList.remove("opacity-0");
+      modal.classList.add("opacity-100");
+
+      setTimeout(() => {
+        box.classList.remove("scale-95", "opacity-0");
+        box.classList.add("scale-100", "opacity-100");
+      }, 50);
+    }
+
+    function closeModal() {
+      const modal = document.getElementById("successModal");
+      const box = document.getElementById("modalBox");
+
+      box.classList.remove("scale-100", "opacity-100");
+      box.classList.add("scale-95", "opacity-0");
+
+      setTimeout(() => {
+        modal.classList.remove("opacity-100");
+        modal.classList.add("opacity-0", "pointer-events-none");
+      }, 200);
+    }
+  </script>
+
+
+</body>
+
+</html>

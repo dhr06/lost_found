@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Admin – Contact Messages</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="/static/css/navbar.css">
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+    <nav class="navbar">
+        <div class="navbar-container admin-navbar">
+
+            <!-- LEFT: Admin navigation -->
+            <div class="navbar-links admin-center-links">
+                <a href="/admindesbord.html">Dashboard</a>
+                <a href="/admin_items.html">Items</a>
+                <a href="/admin_users.html">Users</a>
+            </div>
+
+            <!-- RIGHT: Actions -->
+            <div class="navbar-actions">
+                <!-- Logout FIRST -->
+                <button class="nav-btn logout-btn" onclick="logout()">
+                    Logout
+                </button>
+
+                <!-- Dark mode -->
+                <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <main class="p-6">
+        <h1 class="text-2xl font-bold mb-6">Contact Submissions</h1>
+
+        <div id="contactList" class="space-y-4"></div>
+    </main>
+
+
+
+
+    <script>
+        async function loadContacts() {
+            console.log("loadContacts() called");
+
+            const token = localStorage.getItem("token");
+            console.log("TOKEN:", token);
+
+            const res = await fetch("/api/admin/contacts", {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            console.log("RESPONSE STATUS:", res.status);
+
+            const data = await res.json();
+            console.log("RESPONSE DATA:", data);
+
+            const container = document.getElementById("contactList");
+            container.innerHTML = "";
+
+            data.messages.forEach(msg => {
+                container.innerHTML += `
+  <div class="bg-white dark:bg-gray-900
+              border border-gray-200 dark:border-gray-700
+              rounded-lg p-5 mb-4 transition-colors">
+
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+      <div>
+        <p class="text-lg font-semibold text-gray-900 dark:text-white">
+          ${msg.subject}
+        </p>
+
+        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <span class="font-medium">From:</span> ${msg.email}
+        </p>
+      </div>
+
+      <span class="px-3 py-1 text-xs font-semibold rounded-full
+        ${msg.status === "new"
+                        ? "bg-red-600 text-white"
+                        : "bg-green-600 text-white"}">
+        ${msg.status}
+      </span>
+    </div>
+
+    <!-- Message -->
+    <div class="mt-4">
+      <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        Message:
+      </p>
+      <p class="text-gray-800 dark:text-gray-200">
+        ${msg.message}
+      </p>
+    </div>
+
+    <!-- Action -->
+    ${msg.status === "new"
+                        ? `<button
+             onclick="markRead('${msg._id}')"
+             class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700
+                    text-white rounded transition">
+             Mark as Read
+           </button>`
+                        : ""
+                    }
+  </div>
+`;
+            });
+        }
+
+        async function markRead(id) {
+            const token = localStorage.getItem("token");
+
+            await fetch(`/api/admin/contacts/${id}/read`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            loadContacts(); // refresh list
+        }
+        loadContacts();
+    </script>
+    <script>
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+
+        if (!token || role !== "admin") {
+            window.location.href = "/login.html";
+        }
+    </script>
+
+    <script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle("dark");
+
+            if (html.classList.contains("dark")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        // Apply saved theme on load
+        (function () {
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark");
+            }
+        })();
+    </script>
+
+
+    <script>
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user_id");
+            localStorage.removeItem("email");
+            localStorage.removeItem("role");
+
+            sessionStorage.clear();
+
+            window.location.href = "/login.html";
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Users | Campus Lost & Found</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Navbar CSS -->
+    <link rel="stylesheet" href="/static/css/navbar.css">
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+
+    <!-- ================= NAVBAR ================= -->
+    <nav class="navbar">
+        <div class="navbar-container admin-navbar">
+
+            <!-- CENTER LINKS -->
+            <div class="navbar-links admin-center-links">
+                <a href="/admindesbord.html">Dashboard</a>
+                <a href="/admin_items.html">Items</a>
+                <a href="/admin_contacts.html">Contacts</a>
+            </div>
+
+            <!-- RIGHT ACTIONS -->
+            <div class="navbar-actions">
+                <button class="nav-btn logout-btn" onclick="logout()">
+                    Logout
+                </button>
+
+                <div class="dark-toggle" onclick="toggleDarkMode()" title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- ================= MAIN (EMPTY FOR NOW) ================= -->
+    <main class="p-8">
+        <h1 class="text-3xl font-bold">Users</h1>
+        <table class="w-full mt-6 border-collapse">
+            <thead>
+                <tr class="border-b dark:border-gray-700">
+                    <th class="p-2 text-left">Username</th>
+                    <th class="p-2 text-left">Email</th>
+                    <th class="p-2 text-left">Role</th>
+                    <th class="p-2 text-left">Items</th>
+                    <th class="p-2 text-left">Joined</th>
+                    <th class="p-2 text-left">Status</th>
+                    <th class="p-2 text-left">Action</th>
+                </tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+        </table>
+
+    </main>
+
+    <!-- ================= SCRIPTS ================= -->
+
+    <!-- 🔐 ADMIN AUTH GUARD -->
+    <script>
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+
+        if (!token || role !== "admin") {
+            window.location.href = "/login.html";
+        }
+    </script>
+
+    <!-- 🌙 DARK MODE -->
+    <script>
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            html.classList.toggle("dark");
+
+            if (html.classList.contains("dark")) {
+                localStorage.setItem("theme", "dark");
+            } else {
+                localStorage.setItem("theme", "light");
+            }
+        }
+
+        // Apply saved theme on load
+        (function () {
+            const savedTheme = localStorage.getItem("theme");
+            if (savedTheme === "dark") {
+                document.documentElement.classList.add("dark");
+            }
+        })();
+    </script>
+
+    <!-- 🚪 LOGOUT -->
+    <script>
+        function logout() {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user_id");
+            localStorage.removeItem("email");
+            localStorage.removeItem("role");
+            sessionStorage.clear();
+            window.location.href = "/login.html";
+        }
+    </script>
+
+    <script>
+        async function loadUsers() {
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                alert("Admin token missing. Please login again.");
+                window.location.href = "/login.html";
+                return;
+            }
+
+            try {
+                const res = await fetch("/api/admin/users", {
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error("Failed to load users");
+                }
+
+                const data = await res.json();
+                const tbody = document.getElementById("usersTable");
+                tbody.innerHTML = "";
+
+                data.users.forEach(user => {
+                    tbody.innerHTML += `
+  <tr class="border-b dark:border-gray-700">
+    <td class="p-2">${user.username || "-"}</td>
+    <td class="p-2">${user.email}</td>
+    <td class="p-2 capitalize">${user.role}</td>
+    <td class="p-2">${user.item_count}</td>
+    <td class="p-2">
+      ${user.profile?.created_at
+                            ? new Date(user.profile.created_at).toLocaleDateString()
+                            : "-"}
+    </td>
+    <td class="p-2">
+      <span class="${user.status === 'disabled'
+                            ? 'text-red-500'
+                            : 'text-green-600'}">
+        ${user.status || 'active'}
+      </span>
+    </td>
+    <td class="p-2 space-x-3">
+      <button
+        onclick='openUserModal(${JSON.stringify(user)})'
+        class="text-blue-600 hover:underline">
+        View
+      </button>
+
+      <button
+        onclick="toggleUserStatus('${user._id}', '${user.status || 'active'}')"
+        class="${user.status === 'disabled'
+                            ? 'text-green-600'
+                            : 'text-red-600'} hover:underline">
+        ${user.status === 'disabled' ? 'Enable' : 'Disable'}
+      </button>
+    </td>
+  </tr>
+`;
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert("Unable to load users");
+            }
+        }
+
+        loadUsers();
+    </script>
+
+    <script>
+        function openUserModal(user) {
+            document.getElementById("uUsername").textContent = user.username || "-";
+            document.getElementById("uEmail").textContent = user.email;
+            document.getElementById("uRole").textContent = user.role;
+            document.getElementById("uItems").textContent = user.item_count;
+            document.getElementById("uJoined").textContent =
+                user.profile?.created_at
+                    ? new Date(user.profile.created_at).toLocaleString()
+                    : "-";
+
+            document.getElementById("userModal").classList.remove("hidden");
+        }
+
+        function closeUserModal() {
+            document.getElementById("userModal").classList.add("hidden");
+        }
+    </script>
+
+    <script>
+        let pendingUserId = null;
+        let pendingNewStatus = null;
+
+        function toggleUserStatus(userId, currentStatus) {
+            pendingUserId = userId;
+            pendingNewStatus = currentStatus === "disabled" ? "active" : "disabled";
+
+            const title = pendingNewStatus === "disabled"
+                ? "Disable User"
+                : "Enable User";
+
+            const message = pendingNewStatus === "disabled"
+                ? "This user will NOT be able to login. Are you sure?"
+                : "This user will be able to login again.";
+
+            document.getElementById("statusTitle").textContent = title;
+            document.getElementById("statusMessage").textContent = message;
+
+            const btn = document.getElementById("confirmStatusBtn");
+            btn.textContent = pendingNewStatus === "disabled" ? "Disable" : "Enable";
+            btn.className = pendingNewStatus === "disabled"
+                ? "px-4 py-2 bg-red-600 hover:bg-red-700 rounded text-white"
+                : "px-4 py-2 bg-green-600 hover:bg-green-700 rounded text-white";
+
+            document.getElementById("statusModal").classList.remove("hidden");
+        }
+
+        function closeStatusModal() {
+            document.getElementById("statusModal").classList.add("hidden");
+            pendingUserId = null;
+            pendingNewStatus = null;
+        }
+    </script>
+    <script>
+        async function confirmUserStatus() {
+            if (!pendingUserId || !pendingNewStatus) {
+                alert("Something went wrong. Please try again.");
+                return;
+            }
+
+            const token = localStorage.getItem("token");
+
+            try {
+                const res = await fetch(`/api/admin/user/status/${pendingUserId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Authorization": "Bearer " + token,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ status: pendingNewStatus })
+                });
+
+                if (!res.ok) throw new Error("Request failed");
+
+                closeStatusModal();
+                loadUsers();
+
+            } catch (err) {
+                console.error(err);
+                alert("Failed to update user status");
+            }
+        }
+    </script>
+
+    <!-- USER VIEW MODAL -->
+    <div id="userModal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50
+            flex items-center justify-center p-4">
+
+        <div class="bg-white dark:bg-gray-900
+              w-full max-w-md rounded-xl shadow-lg">
+
+            <!-- HEADER -->
+            <div class="px-6 py-4 border-b dark:border-gray-700 flex justify-between">
+                <h2 class="text-xl font-bold">User Details</h2>
+                <button onclick="closeUserModal()">✕</button>
+            </div>
+
+            <!-- BODY -->
+            <div class="px-6 py-4 space-y-2 text-sm">
+                <p><strong>Username:</strong> <span id="uUsername"></span></p>
+                <p><strong>Email:</strong> <span id="uEmail"></span></p>
+                <p><strong>Role:</strong> <span id="uRole"></span></p>
+                <p><strong>Total Items:</strong> <span id="uItems"></span></p>
+                <p><strong>Joined:</strong> <span id="uJoined"></span></p>
+            </div>
+
+            <!-- FOOTER -->
+            <div class="px-6 py-4 border-t dark:border-gray-700 text-right">
+                <button onclick="closeUserModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS CONFIRM MODAL -->
+    <div id="statusModal" class="fixed inset-0 hidden bg-black bg-opacity-50 z-50
+            flex items-center justify-center p-4">
+
+        <div class="bg-white dark:bg-gray-900
+              w-full max-w-sm rounded-xl shadow-lg">
+
+            <div class="px-6 py-4 border-b dark:border-gray-700">
+                <h2 class="text-lg font-bold" id="statusTitle"></h2>
+            </div>
+
+            <div class="px-6 py-4 text-sm" id="statusMessage"></div>
+
+            <div class="px-6 py-4 border-t dark:border-gray-700 flex justify-end gap-3">
+                <button onclick="closeStatusModal()" class="px-4 py-2 bg-gray-300 dark:bg-gray-700 rounded">
+                    Cancel
+                </button>
+                <button id="confirmStatusBtn" onclick="confirmUserStatus()" class="px-4 py-2 rounded text-white">
+                    Confirm
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+
+</html>
